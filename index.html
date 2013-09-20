@@ -5,7 +5,7 @@
     <link rel="component" type="text/ceci" href="//appmaker-components.herokuapp.com/package/all">
     <link rel="component" type="text/ceci" href="components.html">
     <style>
-      div.flathead-card:focus {
+      div.ceci-card:focus {
         background-color: orange;
       }
     </style>
@@ -14,7 +14,7 @@
     <app-counter id="counter">
     </app-counter>
 
-    <div class="flathead-card">
+    <div class="ceci-card">
       <app-input id="input">
         <broadcast on="blue">
       </app-input>
@@ -24,15 +24,15 @@
       </app-label>
 
       <app-counter id="counter-global">
-        <listen on="blue" for="increase">
-        <listen on="green" for="increase">
-          <broadcast on="red">
+        <listen on="blue" for="countUp">
+        <listen on="green" for="countUp">
+        <broadcast on="red">
       </app-counter>
     </div>
 
-    <div class="flathead-card">
+    <div class="ceci-card">
       <app-counter id="counter-green">
-        <listen on="green" for="increase">
+        <listen on="green" for="countUp">
       </app-counter>
 
       <app-test-documentation id="test-docs">
@@ -41,8 +41,10 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.8/require.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
-        require(["ceci", "ceci-ui", "cards"], function(Ceci, CeciUI, Cards) {
-          Ceci.load(Cards.load);
+        require(["ceci-cards"], function(Ceci) {
+          Ceci.load(function(){
+            Ceci.convertContainer(document.getElementsByTagName('body')[0]);
+          });
         });
       });
     </script>
