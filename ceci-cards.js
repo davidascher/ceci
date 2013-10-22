@@ -76,7 +76,7 @@ define(["ceci"], function(Ceci) {
           });
         }
         else if(mutation.removedNodes) {
-          Array.prototype.slice.call(mutation.addedNodes).forEach(function(child) {
+          Array.prototype.slice.call(mutation.removedNodes).forEach(function(child) {
             revert(child, card);
           });
         }
