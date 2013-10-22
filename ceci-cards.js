@@ -21,6 +21,7 @@ define(["ceci"], function(Ceci) {
       card.remove();
     });
     cards = [];
+    Ceci.fireChangeEvent();
   };
 
   function showCard(card) {
@@ -36,7 +37,16 @@ define(["ceci"], function(Ceci) {
   }
 
   Ceci.elementWantsAttention = function(element) {
-    showCard(element.parentNode.parentNode);
+    var cardElement = element.parentNode;
+    while (cardElement && !cardElement.classList.contains('ceci-card')) {
+      cardElement = cardElement.parentNode;
+    }
+    if (cardElement) {
+      showCard(cardElement);
+    }
+    else {
+      console.error('Couldn\'t show element\'s card!');
+    }
   };
 
   function extend(element, card) {
@@ -92,7 +102,9 @@ define(["ceci"], function(Ceci) {
     }
     card.id = card.id || cardClass + "-" + (cards.length+1);
 
-    Array.prototype.forEach.call(card.querySelectorAll('.fixed-top, .phone-canvas, .fixed-bottom'), function(container){
+    var sections = card.querySelectorAll('.fixed-top, .phone-canvas, .fixed-bottom');
+
+    Array.prototype.forEach.call(sections, function(container) {
       observe(container, card);
     });
 
@@ -100,16 +112,8 @@ define(["ceci"], function(Ceci) {
       showCard(card);
     };
 
-    card.describe = function() {
-      return {
-        id: card.id,
-        elements: card.elements.map(function(e) {
-          return e.describe();
-        })
-      };
-    };
-
     cards.push(card);
+
     Ceci._cardAddedCallback(card);
   }
 
@@ -151,6 +155,13 @@ define(["ceci"], function(Ceci) {
     container.appendChild(card);
     processCard(card);
     return card;
+  };
+
+  Ceci.addCard = function (container, card, elementCallback) {
+    container.appendChild(card);
+    processCard(card);
+    Ceci.convertContainer(card, elementCallback);
+    Ceci.fireChangeEvent();
   };
 
   function convertCards() {

@@ -1,11 +1,11 @@
 define(["jquery", "ceci"], function($, Ceci) {
   "use strict";
 
-  var broadcastBlock = document.createElement("broadcast");
-  broadcastBlock.setAttribute("class","channel-visualisation broadcast-channels");
+  var broadcastBlock = document.createElement("div");
+  broadcastBlock.setAttribute("class", "channel-visualisation broadcast-channels");
 
-  var subscriptionBlock = document.createElement("listen");
-  subscriptionBlock.setAttribute("class","channel-visualisation subscription-channels");
+  var subscriptionBlock = document.createElement("div");
+  subscriptionBlock.setAttribute("class", "channel-visualisation subscription-channels");
 
   var channelDot = document.createElement("div");
   channelDot.setAttribute("class", "color dot");
@@ -33,7 +33,7 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     if(!element.querySelector(lsel)) {
       cblock = channelBlock.cloneNode(true);
-      if(listener) {
+      if (listener) {
         cblock.classList.add(listener);
       }
       element.querySelector(sel).appendChild(cblock);
@@ -41,59 +41,13 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     // set relevant channel color, or remove if disabled
     var channelElement = cblock || element.querySelector(lsel);
-    channelElement.setAttribute("color",channel);
+    channelElement.setAttribute("color", channel || 'false');
     channelElement.setAttribute("title", listener ?  listener : "broadcast channel");
   };
 
-  var CeciUI = function(element, def) {
-    var elementAttributes = {},
-        editableAttributes = [];
-
-    var bindAttributeChanging = function(target, attrName, fallthrough) {
-      // value tracking as "real" value
-      var v = false;
-
-      Object.defineProperty(target, attrName, {
-        enumerable: false,
-        configurable: false,
-        get: function() {
-          return v;
-        },
-        set: function(v) {
-          target.setAttribute(attrName, v);
-        }
-      });
-
-      // feedback and mutation observing based on HTML attribute
-      var handler = function(mutations) {
-        mutations.forEach(function(mutation) {
-          v = target.getAttribute(attrName);
-          if (fallthrough) {
-            fallthrough.call(target, v);
-          }
-          Ceci.fireChangeEvent();
-        });
-      };
-
-      var observer = new MutationObserver(handler);
-      var config = { attributes: true, attributeFilter: [attrName.toLowerCase()] };
-
-      observer.observe(target, config);
-    };
-
-    if (def.editable) {
-      Object.keys(def.editable).forEach(function (key) {
-        var props = def.editable[key];
-        bindAttributeChanging(element, key, props.postset);
-        editableAttributes.push(key);
-        var eak = {};
-        Object.keys(props).forEach(function(pkey) {
-          if (pkey === "postset") return;
-          eak[pkey] = props[pkey];
-        });
-        elementAttributes[key] = eak;
-      });
-    }
+  var CeciUI = function (element, definition, attributes) {
+    var elementAttributes = attributes.elementAttributes;
+    var editableAttributes = attributes.editableAttributes;
 
     element.addDataBubble = function(element, direction, data) {
       var timeout = (direction === "out" ? 0 : signalSpeed * 1000);
@@ -103,8 +57,33 @@ define(["jquery", "ceci"], function($, Ceci) {
         $(element).append(bubble);
         setTimeout(function() {
           $(bubble).remove();
-        }, bubbleDuration * 1000);
+        }, 700);
       }, timeout);
+    };
+
+    element.addDataVisual = function (element, direction) {
+
+      var div = document.createElement("div");
+      div.setAttribute("class", "data-visual");
+
+      var addDiv = function () {
+        element.appendChild(div);
+      };
+
+      //Check message direction and add data visual
+      if (direction === "out") {
+        addDiv();
+      } else {
+        setTimeout(addDiv, 800);
+      }
+
+      var removeDiv = function() {
+        element.removeChild(div);
+      };
+
+      //Remove data visual
+      setTimeout(removeDiv, 2400);
+
     };
 
     element.addIndicator = function(element, direction) {
@@ -137,8 +116,8 @@ define(["jquery", "ceci"], function($, Ceci) {
       return elementAttributes[attrName];
     };
 
-    element.onBroadcastChannelChanged = function(channel) {
-      setChannelIndicator(element, 'broadcast', channel);
+    element.onBroadcastChannelChanged = function(channel, name) {
+      setChannelIndicator(element, 'broadcast', channel, name);
       Ceci.fireChangeEvent();
     };
 
@@ -149,14 +128,18 @@ define(["jquery", "ceci"], function($, Ceci) {
 
     element.onOutputGenerated = function(channel, output) {
       var bc = element.querySelector(".broadcast-channels .channel[color="+channel+"]");
+      // TODO: remove addIndicator
       element.addIndicator(bc, "out");
+      element.addDataVisual(bc, "out");
       element.addDataBubble(bc, "out", output);
     };
 
     element.onInputReceived = function(channel, input) {
       var bc = element.querySelectorAll(".subscription-channels .channel[color="+channel+"]");
       for(var i = 0; i < bc.length; ++i) {
+        // TODO: remove addIndicator
         element.addIndicator(bc[i], "in");
+        element.addDataVisual(bc[i], "in");
         element.addDataBubble(bc[i], "in", input);
       }
     };
