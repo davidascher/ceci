@@ -523,33 +523,43 @@ define(function() {
     }
   };
 
+
+  // we need this available from designer to load custom components
+  Ceci.loadComponents = function(ceciLinks, callOnComplete) {
+    var fragments = document.createElement("div");
+    var linksLeft = ceciLinks.length;
+    var _loadComponents = function (componentLink) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', componentLink.getAttribute('href'), true);
+      xhr.onload = function (e) {
+        var fragment = document.createElement('div');
+        fragment.innerHTML = xhr.response;
+        fragments.appendChild(fragment);
+        if (--linksLeft === 0) {
+          console.log("processing components!");
+          processComponents(fragments, callOnComplete);
+        }
+      };
+      xhr.onerror = function(e) {
+        console.log("XHR ERROR", e);
+        console.log(e.message);
+      };
+      xhr.overrideMimeType('text/plain');
+      xhr.send(null);
+    };
+    Array.prototype.forEach.call(ceciLinks, _loadComponents);
+  };
+
   /**
    * Load all web components from <link rel="component">
    */
   Ceci.load = function (callOnComplete) {
     var ceciLinks = document.querySelectorAll('link[rel=component][type="text/ceci"]');
-
+    Ceci.loadComponents(ceciLinks, callOnComplete);
+    // why do we need this?
     if (ceciLinks.length === 0) {
       return processComponents(false, callOnComplete);
     }
-
-    var linksLeft = ceciLinks.length,
-        fragments = document.createElement("div"),
-        loadComponents = function (componentLink) {
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', componentLink.getAttribute('href'), true);
-          xhr.onload = function (e) {
-            var fragment = document.createElement('div');
-            fragment.innerHTML = xhr.response;
-            fragments.appendChild(fragment);
-            if (--linksLeft === 0) {
-              processComponents(fragments, callOnComplete);
-            }
-          };
-          xhr.overrideMimeType('text/plain');
-          xhr.send(null);
-        };
-    Array.prototype.forEach.call(ceciLinks, loadComponents);
   };
 
   Ceci.convertElementInContainer = function (elementName, container, convertElementCalback) {
