@@ -215,6 +215,10 @@ define(["ceci-cards", "ceci-utils"], function(Ceci, Utils) {
 
     this.getPortableAppTree = function () {
       var appContainerClone = this.container.cloneNode(true);
+      var hooks = document.getElementById('hooks');
+      if (hooks) {
+        appContainerClone.appendChild(hooks.cloneNode(true));
+      }
       var cards = appContainerClone.querySelectorAll('.ceci-card');
 
       Array.prototype.forEach.call(cards, this.getPortableCardTree);

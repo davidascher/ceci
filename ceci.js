@@ -536,13 +536,13 @@ define(function() {
         fragment.innerHTML = xhr.response;
         fragments.appendChild(fragment);
         if (--linksLeft === 0) {
-          console.log("processing components!");
           processComponents(fragments, callOnComplete);
         }
       };
       xhr.onerror = function(e) {
         console.log("XHR ERROR", e);
         console.log(e.message);
+        return;
       };
       xhr.overrideMimeType('text/plain');
       xhr.send(null);
